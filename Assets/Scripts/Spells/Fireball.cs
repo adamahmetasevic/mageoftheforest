@@ -1,31 +1,82 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 public class Fireball : MonoBehaviour
 {
-    public float speed = 10f; // Speed of the fireball
-    public int damage = 10; // Damage dealt by the fireball
-    public float lifetime = 3f; // How long the fireball exists
+    public float speed = 10f;               // Speed of the fireball
+    public int damage = 10;                 // Damage dealt by the fireball
+    public float lifetime = 3f;             // How long the fireball exists
     public ParticleSystem fireballParticles; // Particle effect for the fireball
-    public Rigidbody2D rb; // Rigidbody2D component
+    public Rigidbody2D rb;                  // Rigidbody2D component
+    public LineRenderer lineRenderer;       // Reference to LineRenderer
+    public float fadeSpeed = 1f;            // Speed at which the line fades
 
-    private Vector3 direction; // Direction of movement
+    private Vector3 direction;              // Direction of movement
+    private List<Vector3> linePositions;    // List to store the positions of the line
+    private float timeSinceLastUpdate = 0f;  // Timer for updating line positions
+    private float lineAlpha = 1f;           // The alpha value of the line (transparency)
+    private Color originalColor;            // To store the original color of the line
 
     void Start()
     {
-        // Set up the lifetime and destroy after the set time
         rb = GetComponent<Rigidbody2D>();
         direction = (Camera.main.ScreenToWorldPoint(Input.mousePosition) - transform.position).normalized;
-        direction.z = 0f;  // We only want movement on the X and Y axes (2D)
-        
+        direction.z = 0f; // Only use X and Y axes in 2D
+
         // Set velocity based on direction
         rb.velocity = direction * speed;
 
+        // Destroy the fireball after a certain lifetime
         Destroy(gameObject, lifetime);
-        
+
+        // Set up the LineRenderer
+        lineRenderer = GetComponent<LineRenderer>();
+        lineRenderer.positionCount = 0;  // Initially no points in the line
+        linePositions = new List<Vector3>(); // Initialize the list for line positions
+
+        // Store the original color of the line (preserves its color)
+        originalColor = lineRenderer.startColor;
+
+        // Set the material's initial color (ensure it's fully opaque)
+        lineRenderer.startColor = new Color(originalColor.r, originalColor.g, originalColor.b, 1f); // Fully opaque
+        lineRenderer.endColor = new Color(originalColor.r, originalColor.g, originalColor.b, 1f);   // Fully opaque
+
         // Play fireball particle effect if available
         if (fireballParticles != null)
         {
             fireballParticles.Play();
+        }
+    }
+
+    void Update()
+    {
+        // Increment the timer to update line position periodically
+        timeSinceLastUpdate += Time.deltaTime;
+
+        if (timeSinceLastUpdate >= 0.05f)  // Update every 0.05 seconds
+        {
+            timeSinceLastUpdate = 0f;
+
+            // Add the fireball's current position to the line
+            linePositions.Add(transform.position);
+
+            // Update the line renderer with all the points in the list
+            lineRenderer.positionCount = linePositions.Count;
+            lineRenderer.SetPositions(linePositions.ToArray());
+        }
+
+        // Fade the line by reducing the alpha over time
+        if (lineAlpha > 0f)
+        {
+            lineAlpha -= Time.deltaTime * fadeSpeed;  // Reduce alpha based on fade speed
+            lineRenderer.startColor = new Color(originalColor.r, originalColor.g, originalColor.b, lineAlpha);
+            lineRenderer.endColor = new Color(originalColor.r, originalColor.g, originalColor.b, lineAlpha);
+        }
+        else
+        {
+            // Ensure the line is completely invisible when faded
+            lineRenderer.startColor = new Color(originalColor.r, originalColor.g, originalColor.b, 0f);
+            lineRenderer.endColor = new Color(originalColor.r, originalColor.g, originalColor.b, 0f);
         }
     }
 
