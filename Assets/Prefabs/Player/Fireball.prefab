@@ -12,10 +12,10 @@ GameObject:
   - component: {fileID: 3694457387349498191}
   - component: {fileID: 1093800794045964113}
   - component: {fileID: 8371031075432484035}
-  - component: {fileID: 752472437166193362}
   - component: {fileID: 3725001321073512750}
   - component: {fileID: 6896024289252059693}
   - component: {fileID: 6432028300487631899}
+  - component: {fileID: -6023459288048084827}
   m_Layer: 0
   m_Name: Fireball
   m_TagString: Spell
@@ -153,26 +153,6 @@ CircleCollider2D:
   m_Offset: {x: 0, y: 0}
   serializedVersion: 2
   m_Radius: 0.5
---- !u!114 &752472437166193362
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 627897942100437654}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f5a5044d9d4720b449c6f3fcfd02ba91, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  speed: 15
-  damage: 10
-  lifetime: 3
-  fireballParticles: {fileID: 3725001321073512750}
-  explosionParticles: {fileID: 7516675598704468711, guid: d1dfd5b9a0127144db2ad5d7473c805e, type: 3}
-  rb: {fileID: 1093800794045964113}
-  lineRenderer: {fileID: 6432028300487631899}
-  fadeSpeed: 1
 --- !u!198 &3725001321073512750
 ParticleSystem:
   m_ObjectHideFlags: 0
@@ -5074,6 +5054,27 @@ LineRenderer:
   m_UseWorldSpace: 1
   m_Loop: 0
   m_ApplyActiveColorSpace: 1
+--- !u!114 &-6023459288048084827
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 627897942100437654}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a625757557f50f04bbcb5cc88aa4fdf4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  speed: 10
+  damage: 10
+  lifetime: 3
+  fireballParticles: {fileID: 3725001321073512750}
+  explosionParticles: {fileID: 7516675598704468711, guid: d1dfd5b9a0127144db2ad5d7473c805e, type: 3}
+  rb: {fileID: 1093800794045964113}
+  lineRenderer: {fileID: 6432028300487631899}
+  fadeSpeed: 1
+  damageType: 1
 --- !u!1 &1791140227510146341
 GameObject:
   m_ObjectHideFlags: 0
