@@ -121,20 +121,31 @@ public class Fireball : MonoBehaviour
         }
     }
 
-    private void DestroyFireball()
+    // In Fireball.cs
+private void DestroyFireball()
 {
-    // Instantiate explosion particles at the fireball's position
     if (explosionParticles != null)
     {
         ParticleSystem explosion = Instantiate(explosionParticles, transform.position, Quaternion.identity);
         explosion.Play();
 
-        // Destroy the particle system after it has finished playing
-        Destroy(explosion.gameObject, explosion.main.duration + explosion.main.startLifetime.constantMax);
+        // Get the maximum lifetime between particles and light fade
+        float particlesDuration = explosion.main.duration + explosion.main.startLifetime.constantMax;
+        ExplosionLightFader lightFader = explosion.GetComponentInChildren<ExplosionLightFader>();
+        float totalDuration = particlesDuration;
+        
+        if (lightFader != null)
+        {
+            totalDuration = Mathf.Max(particlesDuration, lightFader.fadeDuration);
+        }
+
+        // Destroy the explosion after the longest duration
+        Destroy(explosion.gameObject, totalDuration);
     }
 
-    // Destroy the fireball object
+    // Destroy the fireball immediately
     Destroy(gameObject);
 }
+
 
 }
