@@ -46,6 +46,17 @@ public class Fireball : MonoBehaviour
         if (fireballParticles != null)
         {
             fireballParticles.Play();
+
+            // Adjust the particle system's velocity to be inverse to the fireball's velocity
+            var main = fireballParticles.main;
+            var velocityOverLifetime = fireballParticles.velocityOverLifetime;
+            
+            // Scale the inverse velocity to make the particles trail further
+            velocityOverLifetime.x = -rb.velocity.x * 2f; // Increase the multiplier to strengthen the inverse velocity
+            velocityOverLifetime.y = -rb.velocity.y * 2f; // Increase the multiplier to strengthen the inverse velocity
+
+            // Optionally, you can modify the start speed of the particles to give them more initial velocity
+            main.startSpeed = 3f; // Increase this to make particles move faster
         }
     }
 
@@ -102,17 +113,20 @@ public class Fireball : MonoBehaviour
 
         // Set velocity based on new direction
         rb.velocity = direction * speed;
+
+        // Update the particle system's velocity again if needed
+        if (fireballParticles != null)
+        {
+            var velocityOverLifetime = fireballParticles.velocityOverLifetime;
+            velocityOverLifetime.x = -rb.velocity.x * 2f; // Inverse velocity with a stronger multiplier
+            velocityOverLifetime.y = -rb.velocity.y * 2f; // Inverse velocity with a stronger multiplier
+        }
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
         if (collision.CompareTag("Enemy"))
         {
-            /*var health = collision.GetComponent<Health>();
-            if (health != null)
-            {
-                health.TakeDamage(damage);
-            }*/
             DestroyFireball(); // Destroy on impact with enemy
         }
         else if (collision.CompareTag("Wall"))
@@ -121,31 +135,28 @@ public class Fireball : MonoBehaviour
         }
     }
 
-    // In Fireball.cs
-private void DestroyFireball()
-{
-    if (explosionParticles != null)
+    private void DestroyFireball()
     {
-        ParticleSystem explosion = Instantiate(explosionParticles, transform.position, Quaternion.identity);
-        explosion.Play();
-
-        // Get the maximum lifetime between particles and light fade
-        float particlesDuration = explosion.main.duration + explosion.main.startLifetime.constantMax;
-        ExplosionLightFader lightFader = explosion.GetComponentInChildren<ExplosionLightFader>();
-        float totalDuration = particlesDuration;
-        
-        if (lightFader != null)
+        if (explosionParticles != null)
         {
-            totalDuration = Mathf.Max(particlesDuration, lightFader.fadeDuration);
+            ParticleSystem explosion = Instantiate(explosionParticles, transform.position, Quaternion.identity);
+            explosion.Play();
+
+            // Get the maximum lifetime between particles and light fade
+            float particlesDuration = explosion.main.duration + explosion.main.startLifetime.constantMax;
+            ExplosionLightFader lightFader = explosion.GetComponentInChildren<ExplosionLightFader>();
+            float totalDuration = particlesDuration;
+
+            if (lightFader != null)
+            {
+                totalDuration = Mathf.Max(particlesDuration, lightFader.fadeDuration);
+            }
+
+            // Destroy the explosion after the longest duration
+            Destroy(explosion.gameObject, totalDuration);
         }
 
-        // Destroy the explosion after the longest duration
-        Destroy(explosion.gameObject, totalDuration);
+        // Destroy the fireball immediately
+        Destroy(gameObject);
     }
-
-    // Destroy the fireball immediately
-    Destroy(gameObject);
-}
-
-
 }

@@ -21,7 +21,7 @@ public class SpellCaster : MonoBehaviour
 
         // Cast spells with keys (e.g., Q, W, E, R)
         if (Input.GetKeyDown(KeyCode.Q)) CastSpell(0);
-        if (Input.GetKeyDown(KeyCode.W)) CastSpell(1);
+        if (Input.GetKeyDown(KeyCode.E)) CastSpell(1);
     }
 
     void HandleCooldowns()
@@ -71,6 +71,12 @@ public class SpellCaster : MonoBehaviour
     {
         fireball.Initialize(direction, fireball.damage);
     }
+
+    LightningBolt lightning = spellObject.GetComponent<LightningBolt>();
+if (lightning != null)
+{
+    lightning.firePoint = firePoint; // Pass the firePoint to the lightning bolt
+}
 }
 
 
