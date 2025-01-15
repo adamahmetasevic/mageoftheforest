@@ -7,6 +7,7 @@ public class Fireball : MonoBehaviour
     public int damage = 10;                 // Damage dealt by the fireball
     public float lifetime = 3f;             // How long the fireball exists
     public ParticleSystem fireballParticles; // Particle effect for the fireball
+    public ParticleSystem explosionParticles; // Particle effect for explosion
     public Rigidbody2D rb;                  // Rigidbody2D component
     public LineRenderer lineRenderer;       // Reference to LineRenderer
     public float fadeSpeed = 1f;            // Speed at which the line fades
@@ -50,6 +51,20 @@ public class Fireball : MonoBehaviour
 
     void Update()
     {
+        // Perform a raycast ahead of the fireball
+        RaycastHit2D hit = Physics2D.Raycast(transform.position, direction, speed * Time.deltaTime);
+
+        // If the raycast hits a collider
+        if (hit.collider != null)
+        {
+            if (hit.collider.CompareTag("Enemy") || hit.collider.CompareTag("Wall"))
+            {
+                // Handle collision with enemy or wall
+                DestroyFireball();
+                return; // No need to update position if we collided
+            }
+        }
+
         // Increment the timer to update line position periodically
         timeSinceLastUpdate += Time.deltaTime;
 
@@ -98,11 +113,28 @@ public class Fireball : MonoBehaviour
             {
                 health.TakeDamage(damage);
             }*/
-            Destroy(gameObject); // Destroy on impact
+            DestroyFireball(); // Destroy on impact with enemy
         }
         else if (collision.CompareTag("Wall"))
         {
-            Destroy(gameObject); // Destroy on wall impact
+            DestroyFireball(); // Destroy on impact with wall
         }
     }
+
+    private void DestroyFireball()
+{
+    // Instantiate explosion particles at the fireball's position
+    if (explosionParticles != null)
+    {
+        ParticleSystem explosion = Instantiate(explosionParticles, transform.position, Quaternion.identity);
+        explosion.Play();
+
+        // Destroy the particle system after it has finished playing
+        Destroy(explosion.gameObject, explosion.main.duration + explosion.main.startLifetime.constantMax);
+    }
+
+    // Destroy the fireball object
+    Destroy(gameObject);
+}
+
 }

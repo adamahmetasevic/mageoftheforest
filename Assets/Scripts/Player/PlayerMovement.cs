@@ -23,31 +23,33 @@ private Animator animator;
     }
 
     void Update()
+{
+    // Handle horizontal movement
+    float moveInput = Input.GetAxis("Horizontal");
+    rb.velocity = new Vector2(moveInput * moveSpeed, rb.velocity.y); 
+
+    // Flip the sprite using localScale (not rotation)
+    if (moveInput > 0)
+        transform.localScale = new Vector3(.5f, .5f, 1); // Facing right
+    else if (moveInput < 0)
+        transform.localScale = new Vector3(-.5f, .5f    , 1); // Facing left
+
+    // Check if the player is grounded
+    isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
+
+    // Handle jumping
+    if (Input.GetButtonDown("Jump") && isGrounded)
     {
-        // Handle horizontal movement
-        float moveInput = Input.GetAxis("Horizontal");
-        rb.velocity = new Vector2(moveInput * moveSpeed, rb.velocity.y);
+        rb.velocity = new Vector2(rb.velocity.x, jumpForce);
+    }
 
-        // Flip player sprite direction based on movement
-        if (moveInput > 0)
-            transform.localScale = new Vector3(0.5f, 0.5f, 1);
-        else if (moveInput < 0)
-            transform.localScale = new Vector3(-0.5f, 0.5f, 1);
-
-        // Check if the player is grounded
-        isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
-
-        // Handle jumping
-        if (Input.GetButtonDown("Jump") && isGrounded)
-        {
-            rb.velocity = new Vector2(rb.velocity.x, jumpForce);
-        }
-
-         if (moveInput != 0)
+    // Handle walking animation
+    if (moveInput != 0)
         animator.SetBool("isWalking", true);
     else
         animator.SetBool("isWalking", false);
-    }
+}
+
 
     private void OnDrawGizmosSelected()
     {
