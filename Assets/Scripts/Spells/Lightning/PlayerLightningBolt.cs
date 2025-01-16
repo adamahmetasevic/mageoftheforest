@@ -7,6 +7,7 @@ public class PlayerLightningBolt : LightningBoltBase
 
     protected override void DealDamage()
     {
+        // Overlap check to hit enemies in the range at the end of the lightning path
         Collider2D[] hitEnemies = Physics2D.OverlapCircleAll(targetPosition, 0.5f, LayerMask.GetMask("Enemy"));
         
         foreach (var enemy in hitEnemies)

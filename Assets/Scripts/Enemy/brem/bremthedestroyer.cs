@@ -8,7 +8,7 @@ public class BremTheDestroyer : Enemy
     public float fireballCooldown = 2f;
     public Transform leftPoint;  // Assign this in Unity Inspector
     public Transform rightPoint; // Assign this in Unity Inspector
-        private bool movingRight = true;
+    private bool movingRight = true;
     public float moveSpeed = 5f;
     private float distanceThreshold = 0.1f; // How close to get to point before turning
     private float nextFireTime = 0f;
@@ -17,6 +17,7 @@ public class BremTheDestroyer : Enemy
 
     private void Start()
     {
+        base.Start();
         rb = GetComponent<Rigidbody2D>();
         resistances.Add(DamageType.Fire, 0.5f);
         weaknesses.Add(DamageType.Water, 0.5f);
@@ -30,8 +31,6 @@ public class BremTheDestroyer : Enemy
         }
     }
 
-
-
     private void Update()
     {
         Move();
@@ -40,6 +39,9 @@ public class BremTheDestroyer : Enemy
             MultiHandAttack();
             nextFireTime = Time.time + fireballCooldown;
         }
+        base.CheckDespawnDistance();
+
+        // No need to call despawn logic here anymore, it's handled in the base class
     }
 
     public override void Move()
@@ -69,22 +71,21 @@ public class BremTheDestroyer : Enemy
     }
 
     public void MultiHandAttack()
-{
-    GameObject player = GameObject.FindGameObjectWithTag("Player");
-    if (player == null) return;
-
-    foreach (Transform firePoint in firePoints)
     {
-        GameObject fireball = Instantiate(fireballPrefab, firePoint.position, firePoint.rotation);
-        EnemyFireball fireballScript = fireball.GetComponent<EnemyFireball>();
+        GameObject player = GameObject.FindGameObjectWithTag("Player");
+        if (player == null) return;
 
-        if (fireballScript != null)
+        foreach (Transform firePoint in firePoints)
         {
-            fireballScript.InitializeEnemyFireball(gameObject, damage); // Remove the direction parameter
+            GameObject fireball = Instantiate(fireballPrefab, firePoint.position, firePoint.rotation);
+            EnemyFireball fireballScript = fireball.GetComponent<EnemyFireball>();
+
+            if (fireballScript != null)
+            {
+                fireballScript.InitializeEnemyFireball(gameObject, damage); // Remove the direction parameter
+            }
         }
     }
-}
-
 
     protected override void Die()
     {

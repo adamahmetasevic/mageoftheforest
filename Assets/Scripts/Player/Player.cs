@@ -57,6 +57,7 @@ public class Player : MonoBehaviour
     public void TakeDamage(int damage, DamageType damageType)
     {
         // Apply resistances based on damage type
+        Debug.Log("I just took damage: " + damage);
         float resistance = 0f;
         if (damageType == DamageType.Fire)
             resistance = fireResistance;
@@ -140,7 +141,7 @@ public class Player : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        // Example interaction with healing or mana-restoring items
+        /* Example interaction with healing or mana-restoring items
         if (collision.CompareTag("HealthPotion"))
         {
             Heal(20); // Heal 20 points
@@ -150,6 +151,6 @@ public class Player : MonoBehaviour
         {
             RestoreMana(15); // Restore 15 mana points
             Destroy(collision.gameObject);
-        }
+        }*/
     }
 }

@@ -3,13 +3,55 @@ using System.Collections.Generic;
 
 public abstract class Enemy : MonoBehaviour
 {
+    [Header("Enemy Stats")]
     public int health;
     public float speed;
     public int damage;
 
+    [Header("Proximity Settings")]
+    [SerializeField] private float despawnDistance = 20f;    // Distance to destroy the enemy
+    protected Transform player; // Reference to the player's transform
+
     // Resistances and weaknesses
     public Dictionary<DamageType, float> resistances = new Dictionary<DamageType, float>();
     public Dictionary<DamageType, float> weaknesses = new Dictionary<DamageType, float>();
+
+    protected void Start()
+    {
+        player = GameObject.FindGameObjectWithTag("Player")?.transform;
+        if (player == null)
+        {
+            Debug.LogError("Player not found. Ensure the player has the 'Player' tag assigned.");
+            return;
+        }
+    }
+
+    private void Update()
+    {
+        // Call the CheckDespawnDistance method to handle despawn logic in base class
+        CheckDespawnDistance();
+    }
+
+    // New method to check the distance and despawn if necessary
+    protected void CheckDespawnDistance()
+    {
+        if (player == null) return;
+
+        // Calculate the 2D distance to the player using Vector2.Distance
+        float distanceToPlayer = Vector2.Distance(transform.position, player.position);
+
+        // Despawn logic: destroy the enemy if it's too far from the player
+        if (distanceToPlayer > despawnDistance)
+        {
+            DestroyEnemy();
+        }
+    }
+
+    private void DestroyEnemy()
+    {
+        Debug.Log($"{gameObject.name} is too far from the player and has been destroyed.");
+        Destroy(gameObject);
+    }
 
     public virtual void TakeDamage(int amount, DamageType damageType)
     {
@@ -33,7 +75,9 @@ public abstract class Enemy : MonoBehaviour
             Die();
         }
     }
+
     public abstract void Move();
+
     protected virtual void Die()
     {
         Debug.Log($"{gameObject.name} has died.");

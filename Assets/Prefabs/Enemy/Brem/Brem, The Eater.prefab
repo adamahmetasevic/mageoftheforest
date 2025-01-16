@@ -5131,6 +5131,7 @@ GameObject:
   - component: {fileID: 3971805056947177606}
   - component: {fileID: 7955313993417153654}
   - component: {fileID: 5544838843209278316}
+  - component: {fileID: 4681090552704889436}
   m_Layer: 6
   m_Name: Brem, The Eater
   m_TagString: Enemy
@@ -5289,6 +5290,7 @@ MonoBehaviour:
   health: 50
   speed: 3
   damage: 10
+  despawnDistance: 62.51
   fireballPrefab: {fileID: 627897942100437654, guid: 727ee63caa1f3d54796e81202d2ad941, type: 3}
   firePoints:
   - {fileID: 4353697523969772700}
@@ -5299,3 +5301,24 @@ MonoBehaviour:
   leftPoint: {fileID: 0}
   rightPoint: {fileID: 0}
   moveSpeed: 5
+--- !u!95 &4681090552704889436
+Animator:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9064610111608427284}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: fac647253c79ed045bb589b1421e5f2e, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0

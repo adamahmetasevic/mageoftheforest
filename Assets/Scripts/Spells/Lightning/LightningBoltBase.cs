@@ -16,7 +16,7 @@ public class LightningBoltBase : MonoBehaviour
     public GameObject smallArcPrefab; // Prefab for smaller arcs (must have a LineRenderer)
     public int smallArcCountPerSegment = 3; // Number of smaller arcs to generate per segment
     public float smallArcOffset = 0.3f; // Max offset for smaller arcs
-     public float damage = 10f; 
+    public float damage = 10f; 
 
     protected Vector3[] lightningPositions; // Stores the positions of the LineRenderer segments
     protected Vector3 targetPosition; // End position of the lightning (mouse cursor or enemy position)
@@ -30,25 +30,29 @@ public class LightningBoltBase : MonoBehaviour
         GenerateSmallArcs();
         StartCoroutine(MoveLightAlongPath());
         Fire();
-
     }
-    
-private void Fire()
-{
-    RaycastHit2D hit = Physics2D.Raycast(firePoint.position, targetPosition - firePoint.position);
 
-    if (hit.collider != null && hit.collider.CompareTag("Enemy"))
+    private void Fire()
     {
-        Enemy enemy = hit.collider.GetComponent<Enemy>();
-        if (enemy != null)
+        // Raycast along the lightning segments
+        for (int i = 0; i < lightningPositions.Length - 1; i++)
         {
-            enemy.TakeDamage((int)damage, DamageType.Lightning);
-            Debug.Log($"Lightning hit: {enemy.name} for {damage} damage");
+            Vector3 start = lightningPositions[i];
+            Vector3 end = lightningPositions[i + 1];
+
+            RaycastHit2D hit = Physics2D.Linecast(start, end, LayerMask.GetMask("Enemy"));
+
+            if (hit.collider != null && hit.collider.CompareTag("Enemy"))
+            {
+                Enemy enemy = hit.collider.GetComponent<Enemy>();
+                if (enemy != null)
+                {
+                    enemy.TakeDamage((int)damage, DamageType.Lightning);
+                    Debug.Log($"Lightning hit: {enemy.name} for {damage} damage");
+                }
+            }
         }
     }
-}
-
-
 
     void GenerateLightning()
     {
@@ -106,31 +110,31 @@ private void Fire()
     }
 
     IEnumerator MoveLightAlongPath()
-{
-    float timeElapsed = 0f;
-
-    while (timeElapsed < duration)
     {
-        float t = timeElapsed / duration;
-        int index = Mathf.Clamp(Mathf.FloorToInt(t * (segmentCount - 1)), 0, segmentCount - 2);
-        float segmentT = (t * (segmentCount - 1)) - index;
+        float timeElapsed = 0f;
 
-        Vector3 lightPosition = Vector3.Lerp(lightningPositions[index], lightningPositions[index + 1], segmentT);
-        lightningLight.transform.position = lightPosition;
-
-        if (t >= 1f && !isLightAtEnd)
+        while (timeElapsed < duration)
         {
-            isLightAtEnd = true;
-            DealDamage(); // Call DealDamage when light reaches the end
-            Debug.Log("Light reached end, attempting to deal damage");
+            float t = timeElapsed / duration;
+            int index = Mathf.Clamp(Mathf.FloorToInt(t * (segmentCount - 1)), 0, segmentCount - 2);
+            float segmentT = (t * (segmentCount - 1)) - index;
+
+            Vector3 lightPosition = Vector3.Lerp(lightningPositions[index], lightningPositions[index + 1], segmentT);
+            lightningLight.transform.position = lightPosition;
+
+            if (t >= 1f && !isLightAtEnd)
+            {
+                isLightAtEnd = true;
+                DealDamage(); // Call DealDamage when light reaches the end
+                Debug.Log("Light reached end, attempting to deal damage");
+            }
+
+            timeElapsed += Time.deltaTime;
+            yield return null;
         }
 
-        timeElapsed += Time.deltaTime;
-        yield return null;
+        Destroy(gameObject);
     }
-
-    Destroy(gameObject);
-}
 
     // Abstract method for dealing damage when light reaches the end
     protected virtual void DealDamage() { }
