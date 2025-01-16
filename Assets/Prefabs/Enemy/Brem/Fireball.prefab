@@ -16,9 +16,9 @@ GameObject:
   - component: {fileID: 6896024289252059693}
   - component: {fileID: 6432028300487631899}
   - component: {fileID: 8112010802416455169}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Fireball
-  m_TagString: Spell
+  m_TagString: EnemySpell
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -5086,7 +5086,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7273669224504164461}
   - component: {fileID: 549332919339330570}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Light 2D
   m_TagString: Untagged
   m_Icon: {fileID: 0}

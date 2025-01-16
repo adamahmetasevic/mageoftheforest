@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+using System.Collections;
 
 
 
@@ -58,7 +59,7 @@ public class Fireball : MonoBehaviour
         Destroy(gameObject, lifetime);
     }
 
-        void Update()
+    void Update()
     {
         // Perform a raycast ahead of the fireball
         RaycastHit2D hit = Physics2D.Raycast(transform.position, direction, speed * Time.deltaTime);
@@ -104,21 +105,40 @@ public class Fireball : MonoBehaviour
             DestroyFireball();
         }
     }
+
     protected virtual void OnHit(Collider2D collider)
     {
         // This method can be overridden by PlayerFireball or EnemyFireball to apply damage logic
     }
 
-    
-
     protected void DestroyFireball()
+{
+    if (explosionParticles != null)
     {
-        if (explosionParticles != null)
-        {
-            ParticleSystem explosion = Instantiate(explosionParticles, transform.position, Quaternion.identity);
-            explosion.Play();
-            Destroy(explosion.gameObject, explosion.main.duration);
-        }
-        Destroy(gameObject);
+        ParticleSystem explosion = Instantiate(explosionParticles, transform.position, Quaternion.identity);
+        explosion.Play();
+
+        // Add a small buffer (0.1 seconds) to ensure the explosion completes
+        Destroy(explosion.gameObject, explosion.main.duration + 0.6f);
     }
+    else
+    {
+        Debug.LogWarning("Explosion particles not assigned!");
+    }
+    
+    Destroy(gameObject);
+}
+
+private IEnumerator DestroyAfterExplosion(ParticleSystem explosion)
+{
+    // Wait for the explosion's duration to finish
+    yield return new WaitForSeconds(explosion.main.duration);
+
+    // After explosion, destroy the fireball
+    Destroy(gameObject);
+}
+
+
+
+
 }

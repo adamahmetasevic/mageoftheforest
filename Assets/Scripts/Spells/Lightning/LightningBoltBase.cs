@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.Rendering.Universal;
 using System.Collections;
 
-public class LightningBolt : MonoBehaviour
+public class LightningBoltBase : MonoBehaviour
 {
     public Transform firePoint; // Starting point of the lightning
     public int segmentCount = 10; // Number of segments for the lightning
@@ -16,46 +16,39 @@ public class LightningBolt : MonoBehaviour
     public GameObject smallArcPrefab; // Prefab for smaller arcs (must have a LineRenderer)
     public int smallArcCountPerSegment = 3; // Number of smaller arcs to generate per segment
     public float smallArcOffset = 0.3f; // Max offset for smaller arcs
+     public float damage = 10f; 
 
-    private Vector3[] lightningPositions; // Stores the positions of the LineRenderer segments
-    private Vector3 targetPosition; // End position of the lightning (mouse cursor)
+    protected Vector3[] lightningPositions; // Stores the positions of the LineRenderer segments
+    protected Vector3 targetPosition; // End position of the lightning (mouse cursor or enemy position)
+    protected bool isLightAtEnd = false;
 
-    void Start()
+    // Method to initialize lightning
+    public virtual void Initialize(Vector3 target)
     {
-        // Ensure LineRenderer is attached
-        lineRenderer = GetComponent<LineRenderer>();
-        if (lineRenderer == null)
-        {
-            Debug.LogError("LineRenderer is missing!");
-            return;
-        }
-
-        // Ensure Light2D is attached
-        lightningLight = GetComponentInChildren<Light2D>();
-        if (lightningLight == null)
-        {
-            Debug.LogWarning("No Light2D component found! Lightning will not illuminate.");
-        }
-
-        // Get the mouse position in world space
-        targetPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        targetPosition.z = 0f;
-
-        // Generate the lightning
+        targetPosition = target;
         GenerateLightning();
-
-        // Generate smaller arcs
         GenerateSmallArcs();
+        StartCoroutine(MoveLightAlongPath());
+        Fire();
 
-        // Start moving the light along the lightning path
-        if (lightningLight != null)
-        {
-            StartCoroutine(MoveLightAlongPath());
-        }
-
-        // Destroy after duration
-        Destroy(gameObject, duration);
     }
+    
+private void Fire()
+{
+    RaycastHit2D hit = Physics2D.Raycast(firePoint.position, targetPosition - firePoint.position);
+
+    if (hit.collider != null && hit.collider.CompareTag("Enemy"))
+    {
+        Enemy enemy = hit.collider.GetComponent<Enemy>();
+        if (enemy != null)
+        {
+            enemy.TakeDamage((int)damage, DamageType.Lightning);
+            Debug.Log($"Lightning hit: {enemy.name} for {damage} damage");
+        }
+    }
+}
+
+
 
     void GenerateLightning()
     {
@@ -89,7 +82,6 @@ public class LightningBolt : MonoBehaviour
 
             for (int j = 0; j < smallArcCountPerSegment; j++)
             {
-                // Calculate midpoint and add offset
                 Vector3 midpoint = (start + end) / 2;
                 midpoint += new Vector3(
                     Random.Range(-smallArcOffset, smallArcOffset),
@@ -97,47 +89,49 @@ public class LightningBolt : MonoBehaviour
                     0f
                 );
 
-                // Create a small arc prefab
                 GameObject smallArc = Instantiate(smallArcPrefab, transform);
                 LineRenderer arcRenderer = smallArc.GetComponent<LineRenderer>();
 
                 if (arcRenderer != null)
                 {
-                    // Set up the positions of the arc
-                    arcRenderer.positionCount = 3; // Start, midpoint, and end
+                    arcRenderer.positionCount = 3;
                     arcRenderer.SetPosition(0, start);
                     arcRenderer.SetPosition(1, midpoint);
                     arcRenderer.SetPosition(2, end);
                 }
 
-                // Destroy the arc after a short time
                 Destroy(smallArc, duration);
             }
         }
     }
 
     IEnumerator MoveLightAlongPath()
+{
+    float timeElapsed = 0f;
+
+    while (timeElapsed < duration)
     {
-        float timeElapsed = 0f;
+        float t = timeElapsed / duration;
+        int index = Mathf.Clamp(Mathf.FloorToInt(t * (segmentCount - 1)), 0, segmentCount - 2);
+        float segmentT = (t * (segmentCount - 1)) - index;
 
-        while (timeElapsed < duration)
+        Vector3 lightPosition = Vector3.Lerp(lightningPositions[index], lightningPositions[index + 1], segmentT);
+        lightningLight.transform.position = lightPosition;
+
+        if (t >= 1f && !isLightAtEnd)
         {
-            // Calculate the current position of the light along the path
-            float t = timeElapsed / duration;
-            int index = Mathf.Clamp(Mathf.FloorToInt(t * (segmentCount - 1)), 0, segmentCount - 2);
-            float segmentT = (t * (segmentCount - 1)) - index;
-
-            // Interpolate between the current and next segment
-            Vector3 lightPosition = Vector3.Lerp(lightningPositions[index], lightningPositions[index + 1], segmentT);
-
-            // Update the light position
-            lightningLight.transform.position = lightPosition;
-
-            timeElapsed += Time.deltaTime;
-            yield return null;
+            isLightAtEnd = true;
+            DealDamage(); // Call DealDamage when light reaches the end
+            Debug.Log("Light reached end, attempting to deal damage");
         }
 
-        // Turn off the light after completing the path
-        lightningLight.intensity = 0f;
+        timeElapsed += Time.deltaTime;
+        yield return null;
     }
+
+    Destroy(gameObject);
+}
+
+    // Abstract method for dealing damage when light reaches the end
+    protected virtual void DealDamage() { }
 }

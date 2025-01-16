@@ -7,6 +7,7 @@ TagManager:
   - Spell
   - Wall
   - Enemy
+  - EnemySpell
   layers:
   - Default
   - TransparentFX
@@ -14,8 +15,8 @@ TagManager:
   - Ground
   - Water
   - UI
-  - 
-  - 
+  - Enemy
+  - EnemySpell
   - 
   - 
   - 

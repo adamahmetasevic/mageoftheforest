@@ -10,9 +10,9 @@ GameObject:
   m_Component:
   - component: {fileID: 8206755544260369836}
   - component: {fileID: 8028400438690251839}
-  - component: {fileID: 8434056276652661839}
   - component: {fileID: 5673060397983544673}
   - component: {fileID: 5173267962069641169}
+  - component: {fileID: 5407569253195497636}
   m_Layer: 0
   m_Name: LightningBolt
   m_TagString: Untagged
@@ -141,28 +141,6 @@ LineRenderer:
   m_UseWorldSpace: 1
   m_Loop: 0
   m_ApplyActiveColorSpace: 1
---- !u!114 &8434056276652661839
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1110642145072054371}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a99bdd0515567a44a80177e000168226, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  firePoint: {fileID: 0}
-  segmentCount: 10
-  jaggedness: 0.43
-  duration: 0.2
-  lineRenderer: {fileID: 8028400438690251839}
-  lightningLight: {fileID: 8165211184060995125}
-  lightTravelSpeed: 50
-  smallArcPrefab: {fileID: 7441197785203582724}
-  smallArcCount: 5
-  smallArcOffset: 0.3
 --- !u!198 &5673060397983544673
 ParticleSystem:
   m_ObjectHideFlags: 0
@@ -5018,6 +4996,29 @@ ParticleSystemRenderer:
   m_MeshWeighting2: 1
   m_MeshWeighting3: 1
   m_MaskInteraction: 0
+--- !u!114 &5407569253195497636
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1110642145072054371}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9d77e9df1ab6e6843952ef5dc1d47b19, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  firePoint: {fileID: 0}
+  segmentCount: 10
+  jaggedness: 0.5
+  duration: 0.2
+  lineRenderer: {fileID: 8028400438690251839}
+  lightningLight: {fileID: 8165211184060995125}
+  lightTravelSpeed: 50
+  smallArcPrefab: {fileID: 7441197785203582724}
+  smallArcCountPerSegment: 3
+  smallArcOffset: 0.3
+  playerDamage: 25
 --- !u!1 &7441197785203582724
 GameObject:
   m_ObjectHideFlags: 0

@@ -36,48 +36,49 @@ public class SpellCaster : MonoBehaviour
     }
 
     void CastSpell(int index)
-{
-    if (index < 0 || index >= equippedSpells.Length || equippedSpells[index] == null)
-        return;
-
-    Spell spell = equippedSpells[index];
-
-    // Check mana and cooldown
-    if (currentMana < spell.manaCost)
     {
-        Debug.Log("Not enough mana!");
-        return;
+        if (index < 0 || index >= equippedSpells.Length || equippedSpells[index] == null)
+            return;
+
+        Spell spell = equippedSpells[index];
+
+        // Check mana and cooldown
+        if (currentMana < spell.manaCost)
+        {
+            Debug.Log("Not enough mana!");
+            return;
+        }
+        if (cooldownTimers[index] > 0)
+        {
+            Debug.Log("Spell is on cooldown!");
+            return;
+        }
+
+        // Deduct mana and set cooldown
+        currentMana -= spell.manaCost;
+        cooldownTimers[index] = spell.cooldown;
+
+        // Instantiate the spell prefab
+        GameObject spellObject = Instantiate(spell.spellPrefab, firePoint.position, firePoint.rotation);
+
+        // Calculate the direction towards the cursor
+        Vector2 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition); // Get mouse position in world space
+        Vector2 direction = (mousePosition - (Vector2)firePoint.position).normalized; // Calculate direction from firepoint to mouse
+
+        // Initialize the spell (Fireball or LightningBolt)
+        Fireball fireball = spellObject.GetComponent<Fireball>();
+        if (fireball != null)
+        {
+            fireball.Initialize(direction, fireball.damage);
+        }
+
+        LightningBoltBase lightning = spellObject.GetComponent<LightningBoltBase>();
+        if (lightning != null)
+        {
+            lightning.firePoint = firePoint; // Pass the firePoint to the lightning bolt
+            lightning.Initialize(mousePosition); // Pass the target position (e.g., cursor or enemy position)
+        }
     }
-    if (cooldownTimers[index] > 0)
-    {
-        Debug.Log("Spell is on cooldown!");
-        return;
-    }
-
-    // Deduct mana and set cooldown
-    currentMana -= spell.manaCost;
-    cooldownTimers[index] = spell.cooldown;
-
-    // Instantiate the spell prefab
-    GameObject spellObject = Instantiate(spell.spellPrefab, firePoint.position, firePoint.rotation);
-
-    // Calculate the direction towards the cursor
-    Vector2 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition); // Get mouse position in world space
-    Vector2 direction = (mousePosition - (Vector2)firePoint.position).normalized; // Calculate direction from firepoint to mouse
-
-    // Initialize the fireball (or similar) script
-    Fireball fireball = spellObject.GetComponent<Fireball>();
-    if (fireball != null)
-    {
-        fireball.Initialize(direction, fireball.damage);
-    }
-
-    LightningBolt lightning = spellObject.GetComponent<LightningBolt>();
-if (lightning != null)
-{
-    lightning.firePoint = firePoint; // Pass the firePoint to the lightning bolt
-}
-}
 
 
     public void RegenerateMana(int amount)
