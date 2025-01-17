@@ -19,6 +19,12 @@ public abstract class Enemy : MonoBehaviour
     public delegate void DeathHandler();
     public event DeathHandler OnDeathTriggered; // Custom event for death
 
+    // For the damage flash effect
+    private Renderer enemyRenderer; // The renderer for flashing
+    private Color originalColor; // Store the original color of the enemy
+    [SerializeField] private Color damageFlashColor = Color.red; // Color of the flash
+    [SerializeField] private float flashDuration = 0.2f; // Duration of the flash
+
     protected void Start()
     {
         player = GameObject.FindGameObjectWithTag("Player")?.transform;
@@ -26,6 +32,13 @@ public abstract class Enemy : MonoBehaviour
         {
             Debug.LogError("Player not found. Ensure the player has the 'Player' tag assigned.");
             return;
+        }
+
+        // Get the renderer component to change its color
+        enemyRenderer = GetComponent<Renderer>();
+        if (enemyRenderer != null)
+        {
+            originalColor = enemyRenderer.material.color; // Store the original color of the enemy
         }
     }
 
@@ -73,9 +86,34 @@ public abstract class Enemy : MonoBehaviour
         health -= Mathf.CeilToInt(finalDamage); // Apply damage and round up
         Debug.Log($"{gameObject.name} took {Mathf.CeilToInt(finalDamage)} {damageType} damage. Remaining health: {health}");
 
+        // Flash the enemy when taking damage
+        FlashDamage();
+
         if (health <= 0)
         {
             Die();
+        }
+    }
+
+    // Flash effect when the enemy takes damage
+    private void FlashDamage()
+    {
+        if (enemyRenderer != null)
+        {
+            // Change the color to the flash color
+            enemyRenderer.material.color = damageFlashColor;
+
+            // Revert the color back after the specified duration
+            StartCoroutine(RevertFlashColor());
+        }
+    }
+
+    private System.Collections.IEnumerator RevertFlashColor()
+    {
+        yield return new WaitForSeconds(flashDuration); // Wait for the duration of the flash
+        if (enemyRenderer != null)
+        {
+            enemyRenderer.material.color = originalColor; // Revert back to original color
         }
     }
 
