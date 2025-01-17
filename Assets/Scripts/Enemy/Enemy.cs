@@ -16,6 +16,9 @@ public abstract class Enemy : MonoBehaviour
     public Dictionary<DamageType, float> resistances = new Dictionary<DamageType, float>();
     public Dictionary<DamageType, float> weaknesses = new Dictionary<DamageType, float>();
 
+    public delegate void DeathHandler();
+    public event DeathHandler OnDeathTriggered; // Custom event for death
+
     protected void Start()
     {
         player = GameObject.FindGameObjectWithTag("Player")?.transform;
@@ -80,6 +83,8 @@ public abstract class Enemy : MonoBehaviour
 
     protected virtual void Die()
     {
+        // Trigger the death event
+        OnDeathTriggered?.Invoke();
         Debug.Log($"{gameObject.name} has died.");
         Destroy(gameObject);
     }

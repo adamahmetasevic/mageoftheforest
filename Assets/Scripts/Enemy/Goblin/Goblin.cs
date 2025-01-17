@@ -14,6 +14,8 @@ public class Goblin : Enemy
     private float nextAttackTime = 0f;
     private bool movingRight = true;
     private Vector2 patrolStartPosition;
+    private bool isChasing = false;  // Track if the goblin has started chasing
+    private Vector2 lastKnownPlayerPosition;
 
     private Animator goblinAnimator;
     private Animator swordAnimator;
@@ -42,9 +44,14 @@ public class Goblin : Enemy
 
         if (player != null)
         {
-            if (Vector2.Distance(transform.position, player.position) <= detectionRange && IsPlayerOnSameLevel())
+            if (CanSeePlayer())
             {
                 ChasePlayer();
+                isWalking = true;
+            }
+            else if (isChasing)
+            {
+                ContinueChase();
                 isWalking = true;
             }
             else
@@ -66,27 +73,66 @@ public class Goblin : Enemy
     public override void Move() { }
 
     private void Patrol()
+{
+    Vector2 movement = movingRight ? Vector2.right : Vector2.left;
+    
+    // Check for collisions before moving
+    RaycastHit2D hit = Physics2D.Raycast(transform.position, movement, 0.5f, LayerMask.GetMask("Obstacles", "Ground"));
+
+    if (hit.collider != null)
     {
-        float patrolDistance = 5f;
-        Vector2 targetPosition = movingRight ? patrolStartPosition + Vector2.right * patrolDistance : patrolStartPosition - Vector2.right * patrolDistance;
-
-        transform.position = Vector2.MoveTowards(transform.position, targetPosition, patrolSpeed * Time.deltaTime);
-
-        if (Vector2.Distance(transform.position, targetPosition) < 0.1f)
+        // If there's an obstacle ahead, turn around
+        movingRight = !movingRight;
+        Flip();
+    }
+    else
+    {
+        // Move only if there's no obstacle
+        Vector2 newPosition = (Vector2)transform.position + movement * patrolSpeed * Time.deltaTime;
+        
+        // Check if the new position is valid (not inside a collider)
+        if (!Physics2D.OverlapPoint(newPosition, LayerMask.GetMask("Obstacles", "Ground")))
         {
+            transform.position = newPosition;
+        }
+        else
+        {
+            // If the new position is invalid, turn around
             movingRight = !movingRight;
+            Flip();
         }
     }
+}
 
+
+    private bool CanSeePlayer()
+{
+    if (Vector2.Distance(transform.position, player.position) <= detectionRange && IsPlayerOnSameLevel())
+    {
+        Vector2 directionToPlayer = (player.position - transform.position).normalized;
+        
+        // Check if the player is in front of the goblin
+        bool playerInFront = (transform.localScale.x > 0 && directionToPlayer.x > 0) || 
+                             (transform.localScale.x < 0 && directionToPlayer.x < 0);
+
+        if (playerInFront)
+        {
+            RaycastHit2D hit = Physics2D.Raycast(transform.position, directionToPlayer, detectionRange, LayerMask.GetMask("Obstacles"));
+
+            if (hit.collider == null)
+            {
+                lastKnownPlayerPosition = player.position;
+                return true;
+            }
+        }
+    }
+    return false;
+}
     private void ChasePlayer()
     {
+        isChasing = true;
         Vector2 direction = (player.position - transform.position).normalized;
-        RaycastHit2D hit = Physics2D.Raycast(transform.position, direction, detectionRange, LayerMask.GetMask("Obstacles"));
-
-        if (hit.collider == null)
-        {
-            transform.position = Vector2.MoveTowards(transform.position, player.position, chaseSpeed * Time.deltaTime);
-        }
+        transform.position = Vector2.MoveTowards(transform.position, player.position, chaseSpeed * Time.deltaTime);
 
         if (player.position.x < transform.position.x && transform.localScale.x > 0)
         {
@@ -96,7 +142,23 @@ public class Goblin : Enemy
         {
             Flip();
         }
+
+        lastKnownPlayerPosition = player.position;
     }
+
+    private void ContinueChase()
+    {
+        if (Vector2.Distance(transform.position, lastKnownPlayerPosition) > 0.1f)
+        {
+            transform.position = Vector2.MoveTowards(transform.position, lastKnownPlayerPosition, chaseSpeed * Time.deltaTime);
+        }
+        else
+        {
+            isChasing = false;
+        }
+    }
+
+
 
     private void Flip()
     {
