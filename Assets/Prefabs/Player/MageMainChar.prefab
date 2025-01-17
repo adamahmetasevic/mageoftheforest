@@ -62,8 +62,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1830892111052804719}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -7.713, y: -2.822, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 41.86, y: 13.12, z: 0.058917843}
   m_LocalScale: {x: 0.5, y: 0.5, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -112,7 +112,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 3
   m_Sprite: {fileID: 21300000, guid: 4982e63080afd0044b384fbd44ff88f1, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 1
@@ -139,7 +139,7 @@ Rigidbody2D:
   m_Mass: 1
   m_LinearDrag: 0
   m_AngularDrag: 0.05
-  m_GravityScale: 1
+  m_GravityScale: 0.46
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
@@ -164,7 +164,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   moveSpeed: 5
-  jumpForce: 7
+  jumpForce: 5
   blinkDistance: 5
   blinkCooldown: 1
   groundCheck: {fileID: 6005672976493289135}
@@ -175,6 +175,8 @@ MonoBehaviour:
   blinkLayerMask:
     serializedVersion: 2
     m_Bits: 8
+  blinkEffect: {fileID: 0}
+  trailRenderer: {fileID: 0}
 --- !u!95 &4853794236969462494
 Animator:
   serializedVersion: 5
@@ -212,7 +214,6 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 3623996695255a04896b2921bb54a009, type: 2}
   - {fileID: 11400000, guid: 7fae9647c9a64274d879b65eec40ae0c, type: 2}
   firePoint: {fileID: 7195000080161253568}
-  maxMana: 100
 --- !u!70 &5018959491287522935
 CapsuleCollider2D:
   m_ObjectHideFlags: 0
@@ -260,15 +261,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aab0fdf2519e94940a373ccdb9f1a949, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxHealth: 4113
-  maxMana: 50
-  currentHealth: 0
-  currentMana: 0
-  healthBar: {fileID: 0}
-  manaBar: {fileID: 0}
-  healthText: {fileID: 0}
-  manaText: {fileID: 0}
-  manaRegenRate: 5
+  maxHealth: 100
+  maxMana: 80
+  currentHealth: 100
+  currentMana: 80
+  manaRegenRate: 10
+  manaRegenSmoothness: 5
+  uiManager: {fileID: 0}
   fireResistance: 0
   waterResistance: 0
 --- !u!1 &5201553371316033744
@@ -351,7 +350,7 @@ MonoBehaviour:
   m_BlendStyleIndex: 0
   m_FalloffIntensity: 0.5
   m_Color: {r: 0.4184909, g: 0.22227661, b: 0.4245283, a: 1}
-  m_Intensity: 0.42
+  m_Intensity: 1.38
   m_LightVolumeIntensity: 1
   m_LightVolumeIntensityEnabled: 0
   m_ApplyToSortingLayers: 00000000
