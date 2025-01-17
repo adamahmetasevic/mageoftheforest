@@ -4,15 +4,13 @@ public class SpellCaster : MonoBehaviour
 {
     public Spell[] equippedSpells; // Array of equipped spells
     public Transform firePoint; // Where spells are cast from
-    public int maxMana = 100; // Player's max mana
-    private int currentMana;
-
     private float[] cooldownTimers;
+    private Player player; // Reference to the Player component
 
     void Start()
     {
-        currentMana = maxMana;
         cooldownTimers = new float[equippedSpells.Length];
+        player = GetComponent<Player>(); // Get reference to Player component
     }
 
     void Update()
@@ -37,35 +35,36 @@ public class SpellCaster : MonoBehaviour
 
     void CastSpell(int index)
     {
-        if (index < 0 || index >= equippedSpells.Length || equippedSpells[index] == null)
+        if (index < 0 || index >= equippedSpells.Length || equippedSpells[index] == null || player == null)
             return;
 
         Spell spell = equippedSpells[index];
 
-        // Check mana and cooldown
-        if (currentMana < spell.manaCost)
+        // Check if player has enough mana
+        if (player.currentMana < spell.manaCost)
         {
             Debug.Log("Not enough mana!");
             return;
         }
+
+        // Check cooldown
         if (cooldownTimers[index] > 0)
         {
             Debug.Log("Spell is on cooldown!");
             return;
         }
 
-        // Deduct mana and set cooldown
-        currentMana -= spell.manaCost;
+        // Deduct mana
+        player.UseMana(spell.manaCost);
+
+        // Set cooldown
         cooldownTimers[index] = spell.cooldown;
 
-        // Instantiate the spell prefab
+        // Instantiate and initialize the spell
         GameObject spellObject = Instantiate(spell.spellPrefab, firePoint.position, firePoint.rotation);
+        Vector2 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        Vector2 direction = (mousePosition - (Vector2)firePoint.position).normalized;
 
-        // Calculate the direction towards the cursor
-        Vector2 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition); // Get mouse position in world space
-        Vector2 direction = (mousePosition - (Vector2)firePoint.position).normalized; // Calculate direction from firepoint to mouse
-
-        // Initialize the spell (Fireball or LightningBolt)
         Fireball fireball = spellObject.GetComponent<Fireball>();
         if (fireball != null)
         {
@@ -75,14 +74,8 @@ public class SpellCaster : MonoBehaviour
         LightningBoltBase lightning = spellObject.GetComponent<LightningBoltBase>();
         if (lightning != null)
         {
-            lightning.firePoint = firePoint; // Pass the firePoint to the lightning bolt
-            lightning.Initialize(mousePosition); // Pass the target position (e.g., cursor or enemy position)
+            lightning.firePoint = firePoint;
+            lightning.Initialize(mousePosition);
         }
-    }
-
-
-    public void RegenerateMana(int amount)
-    {
-        currentMana = Mathf.Min(currentMana + amount, maxMana);
     }
 }

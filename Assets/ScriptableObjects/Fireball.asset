@@ -14,6 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   spellName: Fireball
   icon: {fileID: 0}
-  manaCost: 0
+  manaCost: 20
   cooldown: 0
   spellPrefab: {fileID: 627897942100437654, guid: 0b77de853fa659e4e87f4e5e7c8282e9, type: 3}

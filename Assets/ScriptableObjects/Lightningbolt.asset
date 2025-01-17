@@ -14,6 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   spellName: Lightningbolt
   icon: {fileID: 0}
-  manaCost: 0
+  manaCost: 20
   cooldown: 0
   spellPrefab: {fileID: 1110642145072054371, guid: 0fd70fb009cae4843bcd630166299360, type: 3}
