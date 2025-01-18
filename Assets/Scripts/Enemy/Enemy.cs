@@ -4,7 +4,8 @@ using System.Collections.Generic;
 public abstract class Enemy : MonoBehaviour
 {
     [Header("Enemy Stats")]
-    public int health;
+    [Header("Enemy Stats")]
+    protected int health;  // Change from public to protected
     public float speed;
     public int damage;
 
@@ -25,7 +26,7 @@ public abstract class Enemy : MonoBehaviour
     [SerializeField] private Color damageFlashColor = Color.red; // Color of the flash
     [SerializeField] private float flashDuration = 0.2f; // Duration of the flash
 
-    protected void Start()
+    protected virtual void Start()
     {
         player = GameObject.FindGameObjectWithTag("Player")?.transform;
         if (player == null)

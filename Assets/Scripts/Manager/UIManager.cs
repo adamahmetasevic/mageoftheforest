@@ -5,12 +5,16 @@ using UnityEngine.UI;
 public class UIManager : MonoBehaviour
 {
     [Header("UI Elements")]
-    public Slider healthSlider;    // The main green health slider
-    public Slider damageSlider;    // The yellow damage slider
-    public Slider manaBar;         // The mana bar slider
+    public Slider healthSlider;    
+    public Slider damageSlider;    
+    public Slider manaBar;         
+    public Slider bossHealthSlider;
+    public Slider bossDamageSlider; // Add this new slider for boss damage animation
 
     private float previousHealth = 100f;
+    private float previousBossHealth = 100f; // Add this for boss health tracking
     private Coroutine damageCoroutine;
+    private Coroutine bossDamageCoroutine; // Add this for boss damage animation
     public static UIManager Instance { get; private set; }
 
     void Awake()
@@ -25,7 +29,7 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    void Start()
+   void Start()
     {
         if (healthSlider != null)
         {
@@ -43,6 +47,11 @@ public class UIManager : MonoBehaviour
         {
             manaBar.maxValue = 100f;
             manaBar.value = 100f;
+        }
+
+        if (bossHealthSlider != null)
+        {
+            bossHealthSlider.gameObject.SetActive(false); // Hide boss health bar initially
         }
 
         previousHealth = 100f;
@@ -101,4 +110,74 @@ public class UIManager : MonoBehaviour
 
         damageSlider.value = toValue;
     }
+
+        public void ActivateBossHealthSlider(float currentHealth, float maxHealth)
+{
+    if (bossHealthSlider != null && bossDamageSlider != null)
+    {
+        float healthPercent = (currentHealth / maxHealth) * 100f;
+        
+        bossHealthSlider.maxValue = 100f;  // Set max value to 100 for percentage
+        bossHealthSlider.value = healthPercent;
+        bossDamageSlider.maxValue = 100f;  // Set max value to 100 for percentage
+        bossDamageSlider.value = healthPercent;
+        
+        bossHealthSlider.gameObject.SetActive(true);
+        bossDamageSlider.gameObject.SetActive(true);
+        previousBossHealth = healthPercent;
+    }
+}
+
+public void UpdateBossHealth(float currentHealth, float maxHealth)
+{
+    if (bossHealthSlider != null && bossDamageSlider != null)
+    {
+        float healthPercent = (currentHealth / maxHealth) * 100f;
+        bossHealthSlider.value = healthPercent;
+
+        if (healthPercent < previousBossHealth)
+        {
+            if (bossDamageCoroutine != null)
+                StopCoroutine(bossDamageCoroutine);
+
+            bossDamageCoroutine = StartCoroutine(AnimateBossDamage(previousBossHealth, healthPercent));
+        }
+        else
+        {
+            bossDamageSlider.value = healthPercent;
+        }
+
+        previousBossHealth = healthPercent;
+    }
+}
+
+    private IEnumerator AnimateBossDamage(float fromValue, float toValue)
+    {
+        yield return new WaitForSeconds(0.2f);
+
+        float elapsed = 0f;
+        float duration = 0.4f;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float currentValue = Mathf.Lerp(fromValue, toValue, elapsed / duration);
+            bossDamageSlider.value = currentValue;
+            yield return null;
+        }
+
+        bossDamageSlider.value = toValue;
+    }
+
+    public void DeactivateBossHealthSlider()
+    {
+        if (bossHealthSlider != null)
+        {
+            bossHealthSlider.gameObject.SetActive(false);
+            bossDamageSlider.gameObject.SetActive(false);
+        }
+    }
+
+
+
 }

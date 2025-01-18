@@ -39,7 +39,7 @@ public class GameManager : MonoBehaviour
                     if (!obj.activeInHierarchy) // Only activate if not already active
                     {
                         obj.SetActive(true);
-                        Debug.Log($"Activated: {obj.name}");
+                        //Debug.Log($"Activated: {obj.name}");
                     }
                 }
                 // Deactivate object if it's outside the deactivation distance
@@ -48,7 +48,7 @@ public class GameManager : MonoBehaviour
                     if (obj.activeInHierarchy) // Only deactivate if it's currently active
                     {
                         obj.SetActive(false);
-                        Debug.Log($"Deactivated: {obj.name}");
+                        //Debug.Log($"Deactivated: {obj.name}");
                     }
                 }
             }
