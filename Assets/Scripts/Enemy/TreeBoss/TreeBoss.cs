@@ -25,6 +25,7 @@ public class TreeBoss : Enemy
     // Delegate and event for TreeBoss death
     public delegate void TreeBossDeathHandler();
     public event TreeBossDeathHandler OnTreeBossDeath;
+    private Collider2D myCollider; // To reference the collider
 
     // Flags
     private bool isCharging = false;
@@ -203,20 +204,41 @@ private void SpawnMinions()
         {
             GameObject minion = Instantiate(minionPrefab, spawnPoint.position, Quaternion.identity);
             Debug.Log($"Spawned minion at {spawnPoint.position}");
+            minion minionobj = FindObjectOfType<minion>();
+            if (minionobj != null)
+            {
+                Collider2D minioncolider = minionobj.GetComponent<Collider2D>();
+                if (minioncolider != null)
+                {
+                    Physics2D.IgnoreCollision(myCollider, minioncolider, true); // Disable collision with minions
+                }
+            }
         }
     }
 }
 
 
-    protected override void Die()
+protected override void Die()
+{
+    base.Die();
+    Debug.Log("TreeBoss has been defeated!");
+
+    // Notify all subscribers (minions)
+    OnTreeBossDeath?.Invoke();
+
+    // Deactivate health slider when boss dies
+    UIManager.Instance.DeactivateBossHealthSlider();
+
+    // Notify the player of the boss defeat
+    Player player = FindObjectOfType<Player>();
+    if (player != null)
     {
-        base.Die();
-        Debug.Log("TreeBoss has been defeated!");
-
-        OnTreeBossDeath?.Invoke(); // Notify all subscribers (minions)
-
-        UIManager.Instance.DeactivateBossHealthSlider(); // Deactivate health slider when boss dies
+        player.RecordBossDefeat("TreeBoss");
     }
+
+}
+
+
 
     public override void Move()
     {

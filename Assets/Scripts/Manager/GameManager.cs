@@ -12,11 +12,27 @@ public class GameManager : MonoBehaviour
 
     public Transform player; // Reference to the player’s transform
 
+    // Reference to the TreeBoss object
+    public GameObject treeBossObject; // Ensure this is assigned in the inspector
+
     private void Start()
     {
         if (player == null)
         {
             Debug.LogWarning("Player reference not assigned in the GameManager.");
+        }
+
+        if (treeBossObject != null)
+        {
+            // Ensure the boss is deactivated if it was previously defeated
+            if (IsBossDefeated())
+            {
+                treeBossObject.SetActive(false);
+            }
+            else
+            {
+                treeBossObject.SetActive(true);
+            }
         }
     }
 
@@ -53,5 +69,12 @@ public class GameManager : MonoBehaviour
                 }
             }
         }
+    }
+
+    private bool IsBossDefeated()
+    {
+        // Check if the TreeBoss has been defeated by checking a saved state or flag
+        // Assuming you have a flag or a saved state that tracks the defeat status
+        return PlayerPrefs.GetInt("TreeBossDefeated", 0) == 1;
     }
 }

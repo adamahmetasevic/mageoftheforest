@@ -1,14 +1,27 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 public class SpellCaster : MonoBehaviour
 {
-    public Spell[] equippedSpells; // Array to store equipped spells (initially empty)
+    public Spell[] equippedSpells; // Array to store equipped spells
+    public List<Spell> unlockedSpells = new List<Spell>(); // List to hold unlocked spells
     public Transform firePoint; // Where spells are cast from
     private float[] cooldownTimers;
     private Player player; // Reference to the Player component
+        public string bossName; // The name of the boss, used for saving/loading
+
 
     void Start()
     {
+        player = FindObjectOfType<Player>(); // Get the reference to the player
+
+        // Check if the boss has been defeated already
+        if (player.IsBossDefeated(bossName))
+        {
+            // Disable the boss if it has been defeated
+            gameObject.SetActive(false); // Deactivate the boss so it doesn't appear
+        }
+
         cooldownTimers = new float[equippedSpells.Length];
         player = GetComponent<Player>(); // Get reference to Player component
     }
@@ -33,37 +46,26 @@ public class SpellCaster : MonoBehaviour
         }
     }
 
-    public void UnlockSpell(Spell newSpell)
+    public void UnlockSpell(Spell spell)
     {
-        // Add the new spell to the first empty slot in the equippedSpells array
-        for (int i = 0; i < equippedSpells.Length; i++)
+        if (!unlockedSpells.Contains(spell))
         {
-            if (equippedSpells[i] == null)
-            {
-                equippedSpells[i] = newSpell;
-                Debug.Log($"You have unlocked the spell: {newSpell.name}");
-                ResizeCooldownArray(); // Adjust cooldownTimers size to match equippedSpells
-                return;
-            }
+            unlockedSpells.Add(spell); // Add the spell to the unlocked list
         }
-
-        Debug.LogWarning("No available slot to equip the unlocked spell!");
     }
 
     void ResizeCooldownArray()
     {
-        // Resize the cooldown array to match the equippedSpells array
         float[] newCooldownTimers = new float[equippedSpells.Length];
         for (int i = 0; i < cooldownTimers.Length; i++)
         {
-            newCooldownTimers[i] = cooldownTimers[i]; // Copy existing cooldowns
+            newCooldownTimers[i] = cooldownTimers[i];
         }
         cooldownTimers = newCooldownTimers;
     }
 
     void CastSpell(int index)
     {
-        // Ensure the spell is unlocked and the index is valid
         if (index < 0 || index >= equippedSpells.Length || equippedSpells[index] == null || player == null)
         {
             Debug.Log("Invalid spell index or no spell equipped.");
@@ -72,27 +74,22 @@ public class SpellCaster : MonoBehaviour
 
         Spell spell = equippedSpells[index];
 
-        // Check if player has enough mana
         if (player.currentMana < spell.manaCost)
         {
             Debug.Log("Not enough mana!");
             return;
         }
 
-        // Check cooldown
         if (cooldownTimers[index] > 0)
         {
             Debug.Log("Spell is on cooldown!");
             return;
         }
 
-        // Deduct mana
         player.UseMana(spell.manaCost);
 
-        // Set cooldown
         cooldownTimers[index] = spell.cooldown;
 
-        // Instantiate and initialize the spell
         GameObject spellObject = Instantiate(spell.spellPrefab, firePoint.position, firePoint.rotation);
         Vector2 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         Vector2 direction = (mousePosition - (Vector2)firePoint.position).normalized;
@@ -109,5 +106,27 @@ public class SpellCaster : MonoBehaviour
             lightning.firePoint = firePoint;
             lightning.Initialize(mousePosition);
         }
+    }
+
+    // New Methods for Saving/Loading
+    public List<Spell> GetUnlockedSpells()
+    {
+        List<Spell> unlockedSpells = new List<Spell>();
+        foreach (var spell in equippedSpells)
+        {
+            if (spell != null) unlockedSpells.Add(spell);
+        }
+        return unlockedSpells;
+    }
+
+    public void SetUnlockedSpells(List<Spell> spells)
+    {
+        unlockedSpells = spells;
+    }
+
+    public void SetEquippedSpells(Spell[] spells)
+    {
+        equippedSpells = spells;
+        ResizeCooldownArray(); // Reinitialize the cooldown array based on the equipped spells
     }
 }

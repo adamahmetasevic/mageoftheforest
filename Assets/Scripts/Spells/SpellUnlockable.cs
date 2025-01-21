@@ -8,6 +8,7 @@ public class SpellUnlockable : MonoBehaviour
     private Vector3 initialPosition; // The initial position of the object
     public float floatSpeed = 1f; // Speed of floating motion
     public float floatAmount = 0.1f; // How much the object moves in the floating effect
+    
 
     private void Start()
     {
@@ -36,36 +37,56 @@ public class SpellUnlockable : MonoBehaviour
     }
 
     private void UnlockSpell()
-{
-    Player player = FindObjectOfType<Player>(); // Find the player in the scene
-    if (player != null && player.spellCaster != null && spellToUnlock != null)
     {
-        // Add the spell to the player's unlocked spells
-        player.spellCaster.UnlockSpell(spellToUnlock);
-
-        // Play the unlock effect
-        if (unlockEffect != null)
+        Player player = FindObjectOfType<Player>(); // Find the player in the scene
+        if (player != null && player.spellCaster != null && spellToUnlock != null)
         {
-            // Instantiate the particle system prefab without modifying it
-        ParticleSystem explosion = Instantiate(unlockEffect, transform.position, unlockEffect.transform.rotation);
-            
-            // Destroy the instantiated particle system after its duration
-            Destroy(explosion.gameObject, explosion.main.duration + 2f);
+            // Add the spell to the player's unlocked spells
+            player.spellCaster.UnlockSpell(spellToUnlock);
+
+            // Equip the spell automatically (add to equipped spells)
+            EquipUnlockedSpell(player);
+
+            // Play the unlock effect
+            if (unlockEffect != null)
+            {
+                // Instantiate the particle system prefab without modifying it
+                ParticleSystem explosion = Instantiate(unlockEffect, transform.position, unlockEffect.transform.rotation);
+                
+                // Destroy the instantiated particle system after its duration
+                Destroy(explosion.gameObject, explosion.main.duration + 2f);
+            }
+
+            // Feedback
+            Debug.Log($"You have unlocked and equipped the spell: {spellToUnlock.name}");
+
+            // Destroy or deactivate the spell unlockable object
+            Destroy(gameObject);
+        }
+        else
+        {
+            Debug.LogError("Player, SpellCaster component, or Spell reference is missing!");
+        }
+    }
+
+    private void EquipUnlockedSpell(Player player)
+    {
+        // Check if there's an empty slot in the equipped spells array
+        for (int i = 0; i < player.spellCaster.equippedSpells.Length; i++)
+        {
+            if (player.spellCaster.equippedSpells[i] == null)
+            {
+                // Equip the unlocked spell in the first available slot
+                player.spellCaster.equippedSpells[i] = spellToUnlock;
+                Debug.Log($"Equipped {spellToUnlock.name} in slot {i}");
+                return;
+            }
         }
 
-        // Feedback
-        Debug.Log($"You have unlocked the spell: {spellToUnlock.name}");
-
-        // Destroy or deactivate the spell unlockable object
-        Destroy(gameObject);
+        // If no empty slot is found, consider replacing the first spell (or implement your own logic here)
+        player.spellCaster.equippedSpells[0] = spellToUnlock;
+        Debug.Log($"No empty slot found. Replaced first slot with {spellToUnlock.name}");
     }
-    else
-    {
-        Debug.LogError("Player, SpellCaster component, or Spell reference is missing!");
-    }
-}
-
-
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
@@ -83,6 +104,4 @@ public class SpellUnlockable : MonoBehaviour
             isPlayerNearby = false; // Player left the area
         }
     }
-
-    
 }
