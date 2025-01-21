@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 2567391632102989111}
   - component: {fileID: 4137218015412542818}
   - component: {fileID: 774684799766223913}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: TreeBoss
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -126,23 +126,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 739c88957dc0b2f4fa7594c96e244ef2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  health: 100
   speed: 10
   damage: 25
   despawnDistance: 20
-  damageFlashColor: {r: 1, g: 0.75964576, b: 0, a: 1}
+  damageFlashColor: {r: 0.2924528, g: 0.0358358, b: 0.0124154445, a: 1}
   flashDuration: 0.2
+  _maxHealth: 100
   chargeSpeed: 10
   spinDuration: 2
   attackRange: 1.5
-  maxHealth: 0
   secondPhaseHealthThreshold: 0.5
   minionSpawnPoints:
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
   minionPrefab: {fileID: 2467644625355249128, guid: ed8f832e5db737c43a249a3670aed37a, type: 3}
-  proximityActivationDistance: 10
+  proximityActivationDistance: 15
   invincibilityDuration: 1
 --- !u!70 &774684799766223913
 CapsuleCollider2D:

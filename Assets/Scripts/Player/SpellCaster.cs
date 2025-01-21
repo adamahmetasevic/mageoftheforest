@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class SpellCaster : MonoBehaviour
 {
-    public Spell[] equippedSpells; // Array of equipped spells
+    public Spell[] equippedSpells; // Array to store equipped spells (initially empty)
     public Transform firePoint; // Where spells are cast from
     private float[] cooldownTimers;
     private Player player; // Reference to the Player component
@@ -33,10 +33,42 @@ public class SpellCaster : MonoBehaviour
         }
     }
 
+    public void UnlockSpell(Spell newSpell)
+    {
+        // Add the new spell to the first empty slot in the equippedSpells array
+        for (int i = 0; i < equippedSpells.Length; i++)
+        {
+            if (equippedSpells[i] == null)
+            {
+                equippedSpells[i] = newSpell;
+                Debug.Log($"You have unlocked the spell: {newSpell.name}");
+                ResizeCooldownArray(); // Adjust cooldownTimers size to match equippedSpells
+                return;
+            }
+        }
+
+        Debug.LogWarning("No available slot to equip the unlocked spell!");
+    }
+
+    void ResizeCooldownArray()
+    {
+        // Resize the cooldown array to match the equippedSpells array
+        float[] newCooldownTimers = new float[equippedSpells.Length];
+        for (int i = 0; i < cooldownTimers.Length; i++)
+        {
+            newCooldownTimers[i] = cooldownTimers[i]; // Copy existing cooldowns
+        }
+        cooldownTimers = newCooldownTimers;
+    }
+
     void CastSpell(int index)
     {
+        // Ensure the spell is unlocked and the index is valid
         if (index < 0 || index >= equippedSpells.Length || equippedSpells[index] == null || player == null)
+        {
+            Debug.Log("Invalid spell index or no spell equipped.");
             return;
+        }
 
         Spell spell = equippedSpells[index];
 

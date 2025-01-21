@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 4382607133770229064}
   - component: {fileID: 6325290001454857104}
   - component: {fileID: 7707923644771446158}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: treeguy
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -163,5 +163,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   health: 100
   attackDamage: 10
+  moveSpeed: 3
   attackRange: 1.5
+  chaseRange: 10
   attackCooldown: 1
+  groundLayer:
+    serializedVersion: 2
+    m_Bits: 520
+  groundCheckDistance: 1.88
+  heightThreshold: 2
+  spinDuration: 1
+  spinSpeed: 5
+  explosionParticlePrefab: {fileID: 0}

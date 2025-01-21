@@ -2,20 +2,17 @@ using UnityEngine;
 using System.Collections;
 
 public class TreeBoss : Enemy
-
 {
-
+    // Existing variables
     public int _maxHealth = 100; // Make this private and serialized
- 
-    [Header("Charge Settings")]
     public float chargeSpeed = 10f;
-    public float spinDuration = 2f; // Time to spin back and forth before charging
+    public float spinDuration = 2f;
     public float attackRange = 1.5f;
     private Vector2 chargeTargetPosition;
 
     [Header("Phase Transition")]
-    public float secondPhaseHealthThreshold = 0.5f; // Trigger second phase at 50% health
-    public Transform[] minionSpawnPoints; // Points where minions will spawn
+    public float secondPhaseHealthThreshold = 0.5f;
+    public Transform[] minionSpawnPoints;
     public GameObject minionPrefab;
     private bool secondPhaseTriggered = false;
 
@@ -25,96 +22,89 @@ public class TreeBoss : Enemy
 
     private Rigidbody2D rb;
 
+    // Delegate and event for TreeBoss death
     public delegate void TreeBossDeathHandler();
-    public event TreeBossDeathHandler OnTreeBossDeath;  // Event when TreeBoss dies
+    public event TreeBossDeathHandler OnTreeBossDeath;
 
+    // Flags
     private bool isCharging = false;
-    private bool isInvincible = false;  // Flag to check if boss is in invincibility state
+    private bool isInvincible = false;
+    private bool shouldStartCharging = false;
+    private bool isInitialized = false;
+    private bool hasTakenDamageThisCharge = false;
 
     // Invincibility frames duration
     public float invincibilityDuration = 1f;
-    private bool hasTakenDamageThisCharge = false;
 
+    // Health
     protected override void Start()
-{
-    Debug.Log($"Initial maxHealth: {_maxHealth}");  // Debug to check initial maxHealth value
-    
-    health = _maxHealth;  // Set this first
-    Debug.Log($"Setting initial health to: {_maxHealth}");
-
-    base.Start();  // Then call base.Start()
-    rb = GetComponent<Rigidbody2D>();
-    rb.mass = 100f;
-
-    // Initialize health UI if player is close enough at start
-    if (player != null)
     {
-        float distanceToPlayer = Vector2.Distance(transform.position, player.position);
-        if (distanceToPlayer <= proximityActivationDistance)
+        Debug.Log($"Initial maxHealth: {_maxHealth}");
+
+        health = _maxHealth;
+        Debug.Log($"Setting initial health to: {_maxHealth}");
+
+        base.Start();
+        rb = GetComponent<Rigidbody2D>();
+        rb.mass = 100f;
+
+        // Initialize health UI if player is close enough at start
+        if (player != null)
         {
-            sliderActivated = true;
-            UIManager.Instance.ActivateBossHealthSlider(_maxHealth, _maxHealth);
+            float distanceToPlayer = Vector2.Distance(transform.position, player.position);
+            if (distanceToPlayer <= proximityActivationDistance)
+            {
+                sliderActivated = true;
+                UIManager.Instance.ActivateBossHealthSlider(_maxHealth, _maxHealth);
+            }
+        }
+
+        Debug.Log($"TreeBoss initialized - _maxHealth: {_maxHealth}, Current Health: {health}");
+
+        isInitialized = true;
+        shouldStartCharging = true; // Allow charging to begin
+    }
+
+    private void OnEnable()
+    {
+        if (isInitialized)
+        {
+            shouldStartCharging = true;
+            isCharging = false; // Reset charging state when reactivated
         }
     }
 
-    Debug.Log($"TreeBoss initialized - _maxHealth: {_maxHealth}, Current Health: {health}");
-}
-
+    private void OnDisable()
+    {
+        // Reset states when disabled
+        isCharging = false;
+        shouldStartCharging = false;
+        hasTakenDamageThisCharge = false;
+        isInvincible = false;
+    }
 
     private void Update()
     {
         HandleProximityUI();
 
-        if (!isCharging)
+        if (shouldStartCharging && !isCharging)
         {
+            shouldStartCharging = false;
             StartCoroutine(SpinAndCharge());
         }
 
-        if (!secondPhaseTriggered && health <= (_maxHealth * secondPhaseHealthThreshold))  // Fixed threshold calculation
+        if (!secondPhaseTriggered && health <= (_maxHealth * secondPhaseHealthThreshold)) 
         {
             TriggerSecondPhase();
         }
     }
 
-    public override void TakeDamage(int damage, DamageType damageType)
-{
-    Debug.Log("in takedamage");
-
-    if (isInvincible)
-    {
-        Debug.Log($"Damage blocked - Boss is invincible");
-        return;
-    }
-
-    if (health <= 0)
-    {
-        Debug.Log($"Damage blocked - Boss is already dead");
-        return;
-    }
-
-    // Actually apply the damage
-    int previousHealth = health;
-    health -= damage;
-    health = Mathf.Max(health, 0);
-
-    Debug.Log($"TreeBoss health reduced from {previousHealth} to {health} ({damage} {damageType} damage)");
-
-    if (sliderActivated)
-    {
-        UIManager.Instance.UpdateBossHealth(health, _maxHealth);
-        Debug.Log($"Updated UI health slider to {health}");
-    }
-
-    if (health <= 0)
-    {
-        Debug.Log("TreeBoss health reached 0, calling Die()");
-        Die();
-    }
-}
     private IEnumerator SpinAndCharge()
     {
-        isCharging = true;  // Start charging
-        hasTakenDamageThisCharge = false;  // Reset flag at the start of the charge
+        if (!gameObject.activeInHierarchy) yield break;
+
+        isCharging = true; // Start charging
+        hasTakenDamageThisCharge = false;
 
         // Capture the player's position at the start of the spin
         Vector2 initialChargeTargetPosition = player != null ? player.position : transform.position;
@@ -127,26 +117,27 @@ public class TreeBoss : Enemy
             yield return new WaitForSeconds(0.2f);
         }
 
+        if (!gameObject.activeInHierarchy) yield break;
+
         // Charge toward the saved initial position of the player
         if (player != null)
         {
-            // Calculate the charge direction based on the initial position of the player
-            Vector2 chargeDirection = new Vector2(initialChargeTargetPosition.x - transform.position.x, 0).normalized;  // Ignore Y-axis
-
-            // Apply velocity based on the calculated charge direction
+            Vector2 chargeDirection = new Vector2(initialChargeTargetPosition.x - transform.position.x, 0).normalized;
             rb.velocity = chargeDirection * chargeSpeed;
 
-            // Increase charge duration for a longer charge
-            float chargeDuration = 4f; // You can adjust this as needed
+            float chargeDuration = 4f;
             yield return new WaitForSeconds(chargeDuration);
         }
 
-        rb.velocity = Vector2.zero;  // Stop the boss after the charge
-        StartCoroutine(EnterInvincibilityFrames());  // Activate invincibility frames after charging
+        rb.velocity = Vector2.zero; // Stop the boss after the charge
+        StartCoroutine(EnterInvincibilityFrames()); // Activate invincibility frames after charging
         yield return new WaitForSeconds(1f); // Add cooldown between charges
 
-        isCharging = false;  // Reset charging state
+        isCharging = false; // Reset charging state
         yield return new WaitForSeconds(1f);
+        
+        // Set shouldStartCharging to true to start the next charge
+        shouldStartCharging = true;
     }
 
     private IEnumerator EnterInvincibilityFrames()
@@ -161,76 +152,70 @@ public class TreeBoss : Enemy
     }
 
     private void OnCollisionEnter2D(Collision2D collision)
-{
-    Debug.Log($"Collision detected with {collision.gameObject.name} (Tag: {collision.gameObject.tag})");
-    Debug.Log($"Current state - isCharging: {isCharging}, hasTakenDamageThisCharge: {hasTakenDamageThisCharge}, isInvincible: {isInvincible}");
-
-    if (isCharging && !hasTakenDamageThisCharge)
     {
-        if (collision.gameObject.CompareTag("Player"))
+        Debug.Log($"Collision detected with {collision.gameObject.name} (Tag: {collision.gameObject.tag})");
+        Debug.Log($"Current state - isCharging: {isCharging}, hasTakenDamageThisCharge: {hasTakenDamageThisCharge}, isInvincible: {isInvincible}");
+
+        if (isCharging && !hasTakenDamageThisCharge)
         {
-            Player playerScript = collision.gameObject.GetComponent<Player>();
-            if (playerScript != null)
+            if (collision.gameObject.CompareTag("Player"))
             {
-                playerScript.TakeDamage(25, DamageType.Physical);
+                Player playerScript = collision.gameObject.GetComponent<Player>();
+                if (playerScript != null)
+                {
+                    playerScript.TakeDamage(25, DamageType.Physical);
+                    hasTakenDamageThisCharge = true;
+                    Debug.Log("Player damage dealt: 25");
+                }
+            }
+            else if (collision.gameObject.CompareTag("Wall"))
+            {
+                Debug.Log("TreeBoss hit a wall!");
+                TakeDamage(25, DamageType.Physical);
                 hasTakenDamageThisCharge = true;
-                Debug.Log("Player damage dealt: 25");
             }
         }
-        else if (collision.gameObject.CompareTag("Wall"))
+    }
+
+    private void TriggerSecondPhase()
+{
+    if (secondPhaseTriggered) return;
+
+    secondPhaseTriggered = true;
+    Debug.Log("Entering second phase!");
+
+    if (minionSpawnPoints.Length > 0 && minionPrefab != null)
+    {
+        SpawnMinions(); // Spawn minions just once
+    }
+    else
+    {
+        Debug.LogWarning("Missing minion spawn points or minion prefab!");
+    }
+}
+
+private void SpawnMinions()
+{
+    // Loop through all spawn points and spawn minions once
+    foreach (Transform spawnPoint in minionSpawnPoints)
+    {
+        if (spawnPoint != null)
         {
-            Debug.Log("TreeBoss hit a wall!");
-            Debug.Log("Attempting to deal 25 damage to TreeBoss");
-            TakeDamage(25, DamageType.Physical);
-            hasTakenDamageThisCharge = true;
+            GameObject minion = Instantiate(minionPrefab, spawnPoint.position, Quaternion.identity);
+            Debug.Log($"Spawned minion at {spawnPoint.position}");
         }
     }
 }
 
-    private void TriggerSecondPhase()
-    {
-        if (secondPhaseTriggered) return; // Prevent multiple triggers
-        
-        secondPhaseTriggered = true;
-        Debug.Log("Entering second phase!");
-        
-        if (minionSpawnPoints.Length > 0 && minionPrefab != null)
-        {
-            StartCoroutine(SpawnMinions());
-        }
-        else
-        {
-            Debug.LogWarning("Missing minion spawn points or minion prefab!");
-        }
-    }
-
-    private IEnumerator SpawnMinions()
-    {
-        while (health > 0) // Stop spawning when boss dies
-        {
-            foreach (Transform spawnPoint in minionSpawnPoints)
-            {
-                if (spawnPoint != null)
-                {
-                    GameObject minion = Instantiate(minionPrefab, spawnPoint.position, Quaternion.identity);
-                    Debug.Log($"Spawned minion at {spawnPoint.position}");
-                }
-            }
-
-            yield return new WaitForSeconds(5f);
-        }
-    }
 
     protected override void Die()
     {
         base.Die();
         Debug.Log("TreeBoss has been defeated!");
 
-        // Trigger the TreeBoss death event
         OnTreeBossDeath?.Invoke(); // Notify all subscribers (minions)
 
-        // Deactivate health slider when boss dies
-        UIManager.Instance.DeactivateBossHealthSlider(); 
+        UIManager.Instance.DeactivateBossHealthSlider(); // Deactivate health slider when boss dies
     }
 
     public override void Move()
@@ -239,7 +224,7 @@ public class TreeBoss : Enemy
         // Leave this method empty or add phase-specific movement if required.
     }
 
-     private void HandleProximityUI()
+    private void HandleProximityUI()
     {
         if (player == null) return;
 

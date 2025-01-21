@@ -2,9 +2,11 @@ using UnityEngine;
 
 public class Player : MonoBehaviour
 {
-     [Header("Player Stats")]
+    [Header("Player Stats")]
     public int maxHealth = 100;
     public float maxMana = 50f;
+        private bool isInvincible = false;
+
     public int currentHealth;
     public float currentMana;
 
@@ -18,6 +20,8 @@ public class Player : MonoBehaviour
     [Header("Damage Resistance")]
     public float fireResistance = 0f;
     public float waterResistance = 0f;
+
+    public SpellCaster spellCaster; // Reference to SpellCaster
 
     private Animator animator;
     private PlayerMovement playerMovement;
@@ -35,6 +39,8 @@ public class Player : MonoBehaviour
             uiManager.UpdateHealth(currentHealth, maxHealth);
             uiManager.UpdateMana(currentMana, maxMana);
         }
+
+        spellCaster = GetComponent<SpellCaster>(); // Initialize the SpellCaster reference
 
         animator = GetComponent<Animator>();
         playerMovement = GetComponent<PlayerMovement>();
@@ -55,10 +61,14 @@ public class Player : MonoBehaviour
         }
     }
 
-
-
     public void TakeDamage(int damage, DamageType damageType)
     {
+        // Prevent damage if invincible
+        if (isInvincible)
+        {
+            return;
+        }
+
         // Apply resistances based on damage type
         float resistance = 0f;
         if (damageType == DamageType.Fire)
@@ -87,7 +97,14 @@ public class Player : MonoBehaviour
         }
     }
 
-public void UseMana(float manaCost)
+    public void SetInvincible(bool invincible)
+    {
+        isInvincible = invincible;
+    }
+
+
+
+    public void UseMana(float manaCost)
     {
         if (currentMana >= manaCost)
         {
@@ -113,7 +130,6 @@ public void UseMana(float manaCost)
             uiManager.UpdateMana(currentMana, maxMana);
         }
     }
-
 
     private void Die()
     {

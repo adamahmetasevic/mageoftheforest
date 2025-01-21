@@ -28,136 +28,151 @@
         private bool canBlink = true;
         private SpriteRenderer spriteRenderer;
 
+            private Player player;
+
+
         void Start()
         {
             rb = GetComponent<Rigidbody2D>();
             animator = GetComponent<Animator>();
             spriteRenderer = GetComponent<SpriteRenderer>();
+
+            player = GetComponent<Player>(); // Get reference to the Player script
         }
 
         void Update()
+    {
+        // Handle horizontal movement
+        float moveInput = Input.GetAxis("Horizontal");
+        rb.velocity = new Vector2(moveInput * moveSpeed, rb.velocity.y);
+
+        // Flip the sprite
+        if (moveInput > 0)
+            transform.localScale = new Vector3(.5f, .5f, 1);
+        else if (moveInput < 0)
+            transform.localScale = new Vector3(-.5f, .5f, 1);
+
+        // Ground check
+        isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
+
+        // Handle jumping
+        if (Input.GetButtonDown("Jump") && isGrounded)
         {
-            // Handle horizontal movement
-            float moveInput = Input.GetAxis("Horizontal");
-            rb.velocity = new Vector2(moveInput * moveSpeed, rb.velocity.y);
-
-            // Flip the sprite
-            if (moveInput > 0)
-                transform.localScale = new Vector3(.5f, .5f, 1);
-            else if (moveInput < 0)
-                transform.localScale = new Vector3(-.5f, .5f, 1);
-
-            // Ground check
-            isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
-
-            // Handle jumping
-            if (Input.GetButtonDown("Jump") && isGrounded)
-            {
-                rb.velocity = new Vector2(rb.velocity.x, jumpForce);
-            }
-
-            // Handle walking animation
-            animator.SetBool("isWalking", Mathf.Abs(moveInput) > 0.1f);
-
-            // Handle blink
-            if (Input.GetButtonDown("Blink") && canBlink)
-            {
-                StartCoroutine(Blink());
-            }
+            rb.velocity = new Vector2(rb.velocity.x, jumpForce);
         }
+
+        // Handle walking animation
+        animator.SetBool("isWalking", Mathf.Abs(moveInput) > 0.1f);
+
+        // Handle blink
+        if (Input.GetButtonDown("Blink") && canBlink)
+        {
+            StartCoroutine(Blink());
+        }
+    }
 
         private IEnumerator Blink()
+    {
+        canBlink = false;
+
+        // Make the player invisible (disable sprite renderer)
+        spriteRenderer.enabled = false;
+
+        // Start emitting the lightning trail
+        if (trailRenderer != null)
         {
-            canBlink = false;
-
-            // Make the player invisible (disable sprite renderer)
-            spriteRenderer.enabled = false;
-
-            // Start emitting the lightning trail
-            if (trailRenderer != null)
-            {
-                trailRenderer.emitting = true;
-            }
-
-            // Get the direction and current position
-            Vector2 blinkDirection = GetBlinkDirection();
-            Vector2 currentPosition = transform.position;
-            Vector2 targetPosition = currentPosition + (blinkDirection * blinkDistance);
-
-            // Check for obstacles
-            RaycastHit2D hit = Physics2D.Raycast(currentPosition, blinkDirection, blinkDistance, blinkLayerMask);
-            
-            if (hit.collider != null)
-            {
-                // If there's an obstacle, set the target position just before the hit point
-                targetPosition = hit.point - (blinkDirection * 0.1f);
-            }
-
-            // Store current vertical velocity
-            float currentYVelocity = rb.velocity.y;
-
-            // Perform the teleport
-            transform.position = targetPosition;
-
-            // Set the velocity to prevent trailing behavior after teleporting
-            // If blinking horizontally, preserve the current vertical velocity
-            if (blinkDirection.y == 0)
-            {
-                rb.velocity = new Vector2(rb.velocity.x, currentYVelocity);
-            }
-            else
-            {
-                // If blinking vertically, reset vertical velocity to zero to avoid unintentional fall
-                rb.velocity = new Vector2(rb.velocity.x, 0f);
-            }
-
-            // Wait for the blink duration (the time when the player is invisible)
-            yield return new WaitForSeconds(blinkDuration);
-
-            // Immediately stop emitting the trail after the blink
-            if (trailRenderer != null)
-            {
-                trailRenderer.emitting = false;
-            }
-
-            // Now make the player visible and trigger the explosion effect
-            spriteRenderer.enabled = true;
-
-            // Instantiate the blink effect (burst explosion) and destroy it after 0.6 seconds
-            if (blinkEffectPrefab != null)
-            {
-                GameObject explosion = Instantiate(blinkEffectPrefab, transform.position, Quaternion.identity);
-                Destroy(explosion.gameObject, 5f); // Destroy the blink effect after 0.6 seconds
-            }
-
-            // Wait for the cooldown before allowing another blink
-            yield return new WaitForSeconds(blinkCooldown);
-            canBlink = true;
+            trailRenderer.emitting = true;
         }
+
+        // Enable invincibility during the blink
+        player.SetInvincible(true);
+
+        // Get the direction and current position
+        Vector2 blinkDirection = GetBlinkDirection();
+        Vector2 currentPosition = transform.position;
+        Vector2 targetPosition = currentPosition + (blinkDirection * blinkDistance);
+
+        // Check for obstacles
+        RaycastHit2D hit = Physics2D.Raycast(currentPosition, blinkDirection, blinkDistance, blinkLayerMask);
+        
+        if (hit.collider != null)
+        {
+            // If there's an obstacle, set the target position just before the hit point
+            targetPosition = hit.point - (blinkDirection * 0.1f);
+        }
+
+        // Store current vertical velocity
+        float currentYVelocity = rb.velocity.y;
+
+        // Perform the teleport
+        transform.position = targetPosition;
+
+        // Set the velocity to prevent trailing behavior after teleporting
+        // If blinking horizontally, preserve the current vertical velocity
+        if (blinkDirection.y == 0)
+        {
+            rb.velocity = new Vector2(rb.velocity.x, currentYVelocity);
+        }
+        else
+        {
+            // If blinking vertically, reset vertical velocity to zero to avoid unintentional fall
+            rb.velocity = new Vector2(rb.velocity.x, 0f);
+        }
+
+        // Wait for the blink duration (the time when the player is invisible)
+        yield return new WaitForSeconds(blinkDuration);
+
+        // Immediately stop emitting the trail after the blink
+        if (trailRenderer != null)
+        {
+            trailRenderer.emitting = false;
+        }
+
+        // Now make the player visible and trigger the explosion effect
+        spriteRenderer.enabled = true;
+
+        // Instantiate the blink effect (burst explosion) and destroy it after 0.6 seconds
+        if (blinkEffectPrefab != null)
+        {
+            GameObject explosion = Instantiate(blinkEffectPrefab, transform.position, Quaternion.identity);
+            Destroy(explosion.gameObject, 5f); // Destroy the blink effect after 0.6 seconds
+        }
+
+        // Disable invincibility after the blink ends
+        player.SetInvincible(false);
+
+        // Wait for the cooldown before allowing another blink
+        yield return new WaitForSeconds(blinkCooldown);
+        canBlink = true;
+    }
+
 
         private Vector2 GetBlinkDirection()
+    {
+        float horizontal = Input.GetAxisRaw("Horizontal");
+        float vertical = Input.GetAxisRaw("Vertical");
+
+        // Normalize the direction to prevent faster diagonal blinking
+        Vector2 direction = new Vector2(horizontal, vertical).normalized;
+
+        // If no direction is pressed, blink in the direction the player is facing
+        if (direction == Vector2.zero)
         {
-            float horizontal = Input.GetAxisRaw("Horizontal");
-            float vertical = Input.GetAxisRaw("Vertical");
-
-            // Normalize the direction to prevent faster diagonal blinking
-            Vector2 direction = new Vector2(horizontal, vertical).normalized;
-
-            // If no direction is pressed, blink in the direction the player is facing
-            if (direction == Vector2.zero)
-            {
-                direction = new Vector2(transform.localScale.x > 0 ? 1 : -1, 0);
-            }
-
-            return direction;
+            direction = new Vector2(transform.localScale.x > 0 ? 1 : -1, 0);
         }
+
+        return direction;
+    }
+
+
 
         private void OnDrawGizmosSelected()
+    {
+        if (groundCheck != null)
         {
-            if (groundCheck != null)
-            {
-                Gizmos.color = Color.red;
-                Gizmos.DrawWireSphere(groundCheck.position, groundCheckRadius);
-            }
+            Gizmos.color = Color.red;
+            Gizmos.DrawWireSphere(groundCheck.position, groundCheckRadius);
         }
+    }
+
     }
