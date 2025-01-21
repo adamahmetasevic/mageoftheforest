@@ -8,7 +8,6 @@ public class SpellCaster : MonoBehaviour
     public Transform firePoint; // Where spells are cast from
     private float[] cooldownTimers;
     private Player player; // Reference to the Player component
-        public string bossName; // The name of the boss, used for saving/loading
 
 
     void Start()
@@ -16,11 +15,7 @@ public class SpellCaster : MonoBehaviour
         player = FindObjectOfType<Player>(); // Get the reference to the player
 
         // Check if the boss has been defeated already
-        if (player.IsBossDefeated(bossName))
-        {
-            // Disable the boss if it has been defeated
-            gameObject.SetActive(false); // Deactivate the boss so it doesn't appear
-        }
+      
 
         cooldownTimers = new float[equippedSpells.Length];
         player = GetComponent<Player>(); // Get reference to Player component
@@ -118,6 +113,51 @@ public class SpellCaster : MonoBehaviour
         }
         return unlockedSpells;
     }
+
+ public void LoadSpells(List<string> equippedSpellNames, List<string> unlockedSpellNames)
+{
+    if (equippedSpellNames == null || unlockedSpellNames == null)
+    {
+        Debug.LogError("Spell data is null. Cannot load spells.");
+        return;
+    }
+
+    // Clear the current unlocked spells and re-populate them
+    unlockedSpells.Clear();
+    foreach (string spellName in unlockedSpellNames)
+    {
+        Spell spell = SpellDatabase.GetSpellByName(spellName);
+        if (spell != null)
+        {
+            unlockedSpells.Add(spell);
+        }
+    }
+
+    // Initialize all equipped spell slots to null first
+    for (int i = 0; i < equippedSpells.Length; i++)
+    {
+        equippedSpells[i] = null;
+    }
+
+    // Only populate slots that had spells saved
+    for (int i = 0; i < equippedSpellNames.Count && i < equippedSpells.Length; i++)
+    {
+        if (!string.IsNullOrEmpty(equippedSpellNames[i]))
+        {
+            Spell spell = SpellDatabase.GetSpellByName(equippedSpellNames[i]);
+            if (spell != null)
+            {
+                equippedSpells[i] = spell;
+                Debug.Log($"Equipped {equippedSpellNames[i]} in slot {i}");
+            }
+        }
+    }
+
+    ResizeCooldownArray();
+}
+
+
+
 
     public void SetUnlockedSpells(List<Spell> spells)
     {

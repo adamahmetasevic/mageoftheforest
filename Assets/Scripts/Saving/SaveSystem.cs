@@ -1,37 +1,67 @@
 using UnityEngine;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.Collections.Generic;
 
 public static class SaveSystem
 {
-    public static void SaveGame(GameData data)
+    public static void SaveGame(GameData data, SpellCaster spellCaster)
+{
+    data.unlockedSpells = new List<string>();
+    foreach (var spell in spellCaster.unlockedSpells)
     {
-        string path = Application.persistentDataPath + "/game.save";
-        FileStream stream = new FileStream(path, FileMode.Create);
-
-        BinaryFormatter formatter = new BinaryFormatter();
-        formatter.Serialize(stream, data);
-
-        stream.Close();
+        data.unlockedSpells.Add(spell.name); // Save unlocked spell names
     }
 
-    public static GameData LoadGame()
+    data.equippedSpells = new List<string>();
+    foreach (var spell in spellCaster.equippedSpells)
     {
-        string path = Application.persistentDataPath + "/game.save";
-        if (File.Exists(path))
+        if (spell != null)
         {
-            FileStream stream = new FileStream(path, FileMode.Open);
-
-            BinaryFormatter formatter = new BinaryFormatter();
-            GameData data = (GameData)formatter.Deserialize(stream);
-
-            stream.Close();
-            return data;
+            data.equippedSpells.Add(spell.name); // Save equipped spell names
         }
         else
         {
-            Debug.LogError("No save file found!");
-            return null;
+            data.equippedSpells.Add(""); // Save an empty slot
         }
     }
+
+    string path = Application.persistentDataPath + "/game.save";
+    FileStream stream = new FileStream(path, FileMode.Create);
+
+    BinaryFormatter formatter = new BinaryFormatter();
+    formatter.Serialize(stream, data);
+
+    stream.Close();
+}
+
+
+    public static GameData LoadGame(SpellCaster spellCaster)
+{
+    string path = Application.persistentDataPath + "/game.save";
+    if (File.Exists(path))
+    {
+        FileStream stream = new FileStream(path, FileMode.Open);
+
+        BinaryFormatter formatter = new BinaryFormatter();
+        GameData data = (GameData)formatter.Deserialize(stream);
+
+        stream.Close();
+
+        // Load spells into SpellCaster
+        if (spellCaster != null)
+        {
+            spellCaster.LoadSpells(data.equippedSpells, data.unlockedSpells);
+        }
+
+        return data;
+    }
+    else
+    {
+        Debug.LogError("No save file found!");
+        return null;
+    }
+}
+
+
 }
