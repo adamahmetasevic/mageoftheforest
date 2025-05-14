@@ -15,9 +15,15 @@ public class EnemyLockedLever : LeverBase
 
     private bool AreEnemiesDefeated()
     {
+
+
         // Check if all enemies are either destroyed or inactive
         foreach (GameObject enemy in enemies)
         {
+            if (enemy == null)
+            {
+                return true;
+            }
             if (enemy != null && enemy.activeInHierarchy)
             {
                 // If any enemy is still alive and active, return false

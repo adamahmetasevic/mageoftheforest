@@ -13,7 +13,7 @@ public class PlayerFireball : Fireball
         }
         DestroyFireball(); // Destroy fireball and play explosion
     }
-    else if (collision.CompareTag("Wall"))
+    else if (collision.CompareTag("Ground"))
     {
         DestroyFireball(); // Destroy fireball and play explosion
     }
